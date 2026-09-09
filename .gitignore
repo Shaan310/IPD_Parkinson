@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .venv/
+*.env
+
+# Local dataset
+data/raw/PD/
+data/raw/HC/
+data/raw/Demographics_age_sex.xlsx
+data/raw/voice_features.csv

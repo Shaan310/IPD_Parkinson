@@ -90,12 +90,16 @@ def extract_jitter_shimmer_hnr(sound):
     }
 
     try:
-        point_process = sound.to_point_process_cc(
+        point_process = parselmouth.praat.call(
+            sound,
+            "To PointProcess (periodic, cc)",
             75,
             500
         )
 
-        features["jitter_local"] = point_process.get_jitter_local(
+        features["jitter_local"] = parselmouth.praat.call(
+            point_process,
+            "Get jitter (local)",
             0,
             0,
             0.0001,
@@ -103,7 +107,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.3
         )
 
-        features["jitter_rap"] = point_process.get_jitter_rap(
+        features["jitter_rap"] = parselmouth.praat.call(
+            point_process,
+            "Get jitter (rap)",
             0,
             0,
             0.0001,
@@ -111,7 +117,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.3
         )
 
-        features["jitter_ppq5"] = point_process.get_jitter_ppq5(
+        features["jitter_ppq5"] = parselmouth.praat.call(
+            point_process,
+            "Get jitter (ppq5)",
             0,
             0,
             0.0001,
@@ -119,8 +127,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.3
         )
 
-        features["shimmer_local"] = point_process.get_shimmer_local(
-            sound,
+        features["shimmer_local"] = parselmouth.praat.call(
+            [sound, point_process],
+            "Get shimmer (local)",
             0,
             0,
             0.0001,
@@ -129,8 +138,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.6
         )
 
-        features["shimmer_db"] = point_process.get_shimmer_local_db(
-            sound,
+        features["shimmer_db"] = parselmouth.praat.call(
+            [sound, point_process],
+            "Get shimmer (local_dB)",
             0,
             0,
             0.0001,
@@ -139,8 +149,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.6
         )
 
-        features["shimmer_apq3"] = point_process.get_shimmer_apq3(
-            sound,
+        features["shimmer_apq3"] = parselmouth.praat.call(
+            [sound, point_process],
+            "Get shimmer (apq3)",
             0,
             0,
             0.0001,
@@ -149,8 +160,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.6
         )
 
-        features["shimmer_apq5"] = point_process.get_shimmer_apq5(
-            sound,
+        features["shimmer_apq5"] = parselmouth.praat.call(
+            [sound, point_process],
+            "Get shimmer (apq5)",
             0,
             0,
             0.0001,
@@ -159,8 +171,9 @@ def extract_jitter_shimmer_hnr(sound):
             1.6
         )
 
-        features["shimmer_apq11"] = point_process.get_shimmer_apq11(
-            sound,
+        features["shimmer_apq11"] = parselmouth.praat.call(
+            [sound, point_process],
+            "Get shimmer (apq11)",
             0,
             0,
             0.0001,
@@ -169,24 +182,28 @@ def extract_jitter_shimmer_hnr(sound):
             1.6
         )
 
-    except Exception:
-        pass
+    except Exception as e:
+        print("Jitter/Shimmer extraction error:", e)
 
     try:
-        harmonicity = sound.to_harmonicity_cc(
-            time_step=0.01,
-            minimum_pitch=75,
-            silence_threshold=0.1,
-            periods_per_window=1.0
+        harmonicity = parselmouth.praat.call(
+            sound,
+            "To Harmonicity (cc)",
+            0.01,
+            75,
+            0.1,
+            1.0
         )
 
-        features["hnr"] = harmonicity.get_mean(
+        features["hnr"] = parselmouth.praat.call(
+            harmonicity,
+            "Get mean",
             0,
             0
         )
 
-    except Exception:
-        pass
+    except Exception as e:
+        print("HNR extraction error:", e)
 
     return features
 
@@ -260,7 +277,8 @@ def extract_spectral_features(y, sr):
 
     contrast = librosa.feature.spectral_contrast(
         y=y,
-        sr=sr
+        sr=sr,
+        n_bands=4
     )
 
     features = {
@@ -486,16 +504,19 @@ def extract_gne(sound):
 
 def extract_cpp(sound):
     try:
-        power_cepstrogram = sound.to_power_cepstrogram(
-            pitch_floor=60,
-            time_step=0.002,
-            maximum_frequency=5000,
-            pre_emphasis_from=50
+        power_cepstrogram = parselmouth.praat.call(
+            sound,
+            "To PowerCepstrogram",
+            60,
+            0.002,
+            3500,
+            50
         )
 
         cpp = parselmouth.praat.call(
             power_cepstrogram,
             "Get CPPS",
+            "yes",
             0.01,
             0.001,
             60,
@@ -522,16 +543,9 @@ def extract_cpp(sound):
         }
 
 def extract_features(audio_path):
-    y, sr = librosa.load(
-        audio_path,
-        sr=16000,
-        mono=True
-    )
+    from preprocessing import preprocess_audio
 
-    y, _ = librosa.effects.trim(
-        y,
-        top_db=30
-    )
+    y, sr = preprocess_audio(audio_path)
 
     if len(y) == 0:
         raise ValueError(
