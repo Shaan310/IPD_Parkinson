@@ -1,0 +1,13 @@
+streamlit
+librosa
+praat-parselmouth
+nolds
+pyrpde
+scikit-learn
+joblib
+pandas
+numpy
+scipy
+soundfile
+plotly
+matplotlib
