@@ -9,3 +9,20 @@ data/raw/PD/
 data/raw/HC/
 data/raw/Demographics_age_sex.xlsx
 data/raw/voice_features.csv
+# IPD project local/data artifacts
+.env
+.env.*
+!.env.example
+
+data/
+archive/
+scratch/
+reports/
+audit_and_evaluation_report.md
+recording_protocol.md
+model_testing/
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+.pytest_cache/
+
